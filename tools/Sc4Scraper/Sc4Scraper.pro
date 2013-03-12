@@ -10,3 +10,10 @@ SOURCES += main.cpp \
 
 
 unix|win32: LIBS += -lboost_iostreams
+
+HEADERS += \
+    RegionViewFile.h \
+    Sc4CityFile.h
+
+OTHER_FILES += \
+    testdata/RegionView_SteamboatSprings

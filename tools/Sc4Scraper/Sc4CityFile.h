@@ -1,9 +1,9 @@
-#ifndef SC4CITYFILE_H
-#define SC4CITYFILE_H
-
+#pragma once
 
 #include <boost/iostreams/code_converter.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
+
+#include "RegionViewFile.h"
 
 #include <string>
 
@@ -49,73 +49,44 @@ public:
 
     };
 
-    struct RegionData
+    struct DBDFEntry
     {
-        uint16_t versionMajor;
-        uint16_t versionMinor;
-
-        int32_t tileX;
-        int32_t tileY;
-        uint16_t sizeX;
-        uint16_t sizeY;
-
-        uint32_t residential;
-        uint32_t commercial;
-        uint32_t industrial;
-
-        float unknown;
-
-        uint8_t mayorRating;
-        uint8_t starCount;
-        uint8_t tutorial;
-
-        uint32_t guid;
-
-        uint32_t unknown2[5];
-
-        uint8_t mode;
-
-        uint32_t nameLen;
-        char data[];
-
-        std::string cityName() const
-        {
-            return std::string(data + nameLen);
-        }
-
-        uint32_t formerNameLen() const
-        {
-            return *((uint32_t*)(data + nameLen));
-        }
-
-        std::string formerName() const
-        {
-            return std::string(data + nameLen + formerNameLen(), formerNameLen());
-        }
-
+        uint32_t typeId;
+        uint32_t groupId;
+        uint32_t instanceId;
+        uint32_t size;
     };
+
 
 
     enum FileType
     {
-        PNG = 0x8a2482b9,
+        PNG         = 0x8a2482b9,
         REGION_DATA = 0xCA027EDB
     };
 
 
+    enum GroupId
+    {
+        THUMBNAIL = 0x4a2482b9,
+        REGION = 0xca027ee1
+    };
+
     Sc4CityFile(const std::string& path);
 
-    const RegionData* getRegionData();
+    const RegionFile* getRegionData();
 
 
-    bool getFile(FileType type, uint32_t instanceId, const void*& data,  size_t& size);
+    bool getFile(FileType type, uint32_t groupId, uint32_t instanceId, const void*& data,  size_t& size);
 
 private:
     Header* m_Header;
+
     IndexEntry* m_Index;
     uint32_t m_IndexSize;
 
+    DBDFEntry* m_DBDF;
+    uint32_t m_DBDFSize;
+
     boost::iostreams::mapped_file m_File;
 };
-
-#endif // SC4CITYFILE_H

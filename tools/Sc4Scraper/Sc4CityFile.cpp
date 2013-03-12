@@ -33,6 +33,9 @@ Sc4CityFile::Sc4CityFile(const std::string &path)
     cout << "Opened city file " << m_IndexSize << " files" <<endl;
 
 
+
+
+
     for(int i=0; i < m_IndexSize; i ++)
     {
         IndexEntry& entry = m_Index[i];
@@ -45,12 +48,31 @@ Sc4CityFile::Sc4CityFile(const std::string &path)
 
 
         }
+
+        if(entry.typeId == 0xE86B1EEF &&
+           entry.groupId == 0xE86B1EEF &&
+           entry.instanceId == 0x286B1F03)
+        {
+            cout << "Found index of compressed files" << endl;
+
+            m_DBDF = (DBDFEntry*)(m_File.data()+entry.location);
+            m_DBDFSize = entry.size / 16;
+        }
     }
 }
 
 
-bool Sc4CityFile::getFile(FileType type, uint32_t instanceId, const void *&data, size_t &size)
+bool Sc4CityFile::getFile(FileType type, uint32_t groupId, uint32_t instanceId, const void *&data, size_t &size)
 {
+    DBDFEntry* compressed = NULL;
+    for(int i=0; i < m_DBDFSize; i ++)
+    {
+        if(type == m_DBDF[i].typeId && instanceId == m_DBDF[i].instanceId)
+        {
+            compressed = &m_DBDF[i];
+        }
+    }
+
     for(int i=0; i < m_IndexSize; i ++)
     {
         const IndexEntry& entry = m_Index[i];
@@ -61,29 +83,62 @@ bool Sc4CityFile::getFile(FileType type, uint32_t instanceId, const void *&data,
 
             data = (void*)(m_File.data() + entry.location);
             size = entry.size;
+
+            if(compressed)
+            {
+                data = uncompress_data( const_cast<unsigned char*>((unsigned char*)data)+4, (int*)&size);
+
+                assert(size == compressed->size);
+            }
+
             return true;
         }
     }
     return false;
 }
 
-const Sc4CityFile::RegionData* Sc4CityFile::getRegionData()
+const RegionFile* Sc4CityFile::getRegionData()
 {
     const void* data = 0;
     size_t size = 0;
 
-    if(getFile(REGION_DATA, 0, data,size))
+    if(getFile(REGION_DATA, REGION,  0, data,size))
     {
-        const RegionData* region = (RegionData*)uncompress_data( const_cast<unsigned char*>((unsigned char*)data), (int*)&size);
+        RegionFile* city = new RegionFile;
+        BinaryReader reader((char*)data);
+
+        assert(reader.read<uint16_t>() == 1);
+        assert(reader.read<uint16_t>() == 13);
+
+        city->tileX = reader.read<uint32_t>();
+        city->tileY = reader.read<uint32_t>();
+
+        city->sizeX = reader.read<uint32_t>();
+        city->sizeY = reader.read<uint32_t>();
+
+        city->residential = reader.read<uint32_t>();
+        city->commercial = reader.read<uint32_t>();
+        city->industrial = reader.read<uint32_t>();
 
 
-        //cout << "City name " << region->cityName()  << endl;
-        //cout << "Mayro Name " << region->formerName() << endl;
+        reader.read<float>();
 
-        assert(region->versionMajor == 1);
-        assert(region->versionMinor == 13);
+        city->mayorRating = reader.read<uint8_t>();
+        city->starCount = reader.read<uint8_t>();
 
-        return region;
+        reader.readBytes(1);
+
+        city->guid = reader.read<uint32_t>();
+
+        reader.readBytes(21);
+
+        city->cityName = reader.readString();
+        reader.readString();
+        city->mayorName = reader.readString();
+
+        delete data;
+
+        return city;
     }
 
     return 0;

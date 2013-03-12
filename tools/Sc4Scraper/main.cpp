@@ -18,7 +18,7 @@ int main()
 
     const void* thumbData = 0;
     size_t thumbSize = 0;
-    if(file.getFile(Sc4CityFile::PNG, 0, thumbData,thumbSize))
+    if(file.getFile(Sc4CityFile::PNG, 0, 0, thumbData,thumbSize))
     {
         ofstream out;
 
@@ -29,7 +29,7 @@ int main()
         out.write((const char*)thumbData,thumbSize);
     }
 
-    const Sc4CityFile::RegionData* region = file.getRegionData();
+    const RegionFile* region = file.getRegionData();
     if(region)
     {
         string fname = folder + city + ".json";
@@ -37,17 +37,17 @@ int main()
 
             out << "{" << endl;
 
-            out << "tileX:" << region->tileX << "," << endl;
-            out << "tileY:" << region->tileY << "," << endl;
+            out << "\"name\":\"" << region->cityName << "\"," << endl;
+            out << "\"mayorName\":\"" << region->mayorName << "\"," << endl;
 
-            out << "sizeX:" << region->sizeX << "," << endl;
-            out << "sizeY:" << region->sizeY << "," << endl;
+            out << "\"tileX\":\"" << region->tileX << "\"," << endl;
+            out << "\"tileY\":\"" << region->tileY << "\"," << endl;
 
-
-            out << "guid:" << region->guid << "," << endl;
+            out << "\"sizeX\":\"" << region->sizeX << "\"," << endl;
+            out << "\"sizeY\":\"" << region->sizeY << "\"," << endl;
+            out << "\"guid\":\"" << region->guid << "\"" << endl;
 
             out << "}";
-
     }
 
 
