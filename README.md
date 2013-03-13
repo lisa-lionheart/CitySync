@@ -16,6 +16,7 @@ Feasibility study
 - Can we parse the save game format. Yes.  Done!
 - What effect does ignoring changes to a neighbour have if we simply over write them is it game breaking?
 - Are city GUIDs persistent over founding/obliterating a city
+- If we lock a file so its completly read only will it fuck the game?
 - Will two people be able to play side by side with out the game breaking ?
 - How do we handle making network connections?
 
