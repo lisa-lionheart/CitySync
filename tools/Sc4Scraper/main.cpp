@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-#include <Sc4CityFile.h>
+#include <sc4savegame.h>
 
 
 using namespace std;
@@ -13,12 +13,12 @@ int main()
     string folder = "/Users/lisa/Downloads/Steamboat Springs/";
     string city = "City - Peach Trees";
 
-    Sc4CityFile file(folder + city + ".sc4");
+    Sc4SaveGame file(folder + city + ".sc4");
 
 
     const void* thumbData = 0;
     size_t thumbSize = 0;
-    if(file.getFile(Sc4CityFile::PNG, 0, 0, thumbData,thumbSize))
+    if(file.getFile(Sc4SaveGame::PNG, 0, 0, thumbData,thumbSize))
     {
         ofstream out;
 
@@ -29,25 +29,27 @@ int main()
         out.write((const char*)thumbData,thumbSize);
     }
 
-    const RegionFile* region = file.getRegionData();
+    RegionViewFile* region = RegionViewFile::loadFrom(file);
     if(region)
     {
         string fname = folder + city + ".json";
         ofstream out(fname.c_str());
 
-            out << "{" << endl;
+        out << "{" << endl;
 
-            out << "\"name\":\"" << region->cityName << "\"," << endl;
-            out << "\"mayorName\":\"" << region->mayorName << "\"," << endl;
+        out << "\"name\":\"" << region->cityName << "\"," << endl;
+        out << "\"mayorName\":\"" << region->mayorName << "\"," << endl;
 
-            out << "\"tileX\":\"" << region->tileX << "\"," << endl;
-            out << "\"tileY\":\"" << region->tileY << "\"," << endl;
+        out << "\"tileX\":\"" << region->tileX << "\"," << endl;
+        out << "\"tileY\":\"" << region->tileY << "\"," << endl;
 
-            out << "\"sizeX\":\"" << region->sizeX << "\"," << endl;
-            out << "\"sizeY\":\"" << region->sizeY << "\"," << endl;
-            out << "\"guid\":\"" << region->guid << "\"" << endl;
+        out << "\"sizeX\":\"" << region->sizeX << "\"," << endl;
+        out << "\"sizeY\":\"" << region->sizeY << "\"," << endl;
+        out << "\"guid\":\"" << region->guid << "\"" << endl;
 
-            out << "}";
+        out << "}";
+
+        delete region;
     }
 
 
