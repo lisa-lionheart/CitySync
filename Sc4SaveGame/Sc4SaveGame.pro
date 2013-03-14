@@ -10,6 +10,10 @@ TARGET = Sc4SaveGame
 TEMPLATE = lib
 CONFIG += staticlib
 
+win32 {
+    INCLUDEPATH += C:\development\boost_1_53_0
+}
+
 SOURCES += sc4savegame.cpp \
     regionviewfile.cpp \
     qfs.cpp
@@ -17,11 +21,3 @@ SOURCES += sc4savegame.cpp \
 HEADERS += sc4savegame.h \
     regionviewfile.h \
     binaryreader.hpp
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/lib
-    }
-    INSTALLS += target
-}

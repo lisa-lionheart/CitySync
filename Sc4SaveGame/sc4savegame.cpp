@@ -29,7 +29,7 @@ Sc4SaveGame::Sc4SaveGame(const std::string &path)
     assert(m_Header->indexMajorVer == 7);
     assert(m_Header->indexMinorVer == 0);
 
-    cout << "Opened city file " << m_IndexSize << " files" <<endl;
+    //cout << "Opened city file " << m_IndexSize << " files" <<endl;
 
     for(int i=0; i < m_IndexSize; i ++)
     {
@@ -38,14 +38,14 @@ Sc4SaveGame::Sc4SaveGame(const std::string &path)
         //cout << "Entry type=" << entry.typeId << " location=" << entry.location << " size: " << entry.size << endl;
         if(entry.typeId == PNG)
         {
-            cout << "Found PNG instance=" << entry.instanceId << " location=" << entry.location <<  endl;
+           // cout << "Found PNG instance=" << entry.instanceId << " location=" << entry.location <<  endl;
         }
 
         if(entry.typeId == 0xE86B1EEF &&
            entry.groupId == 0xE86B1EEF &&
            entry.instanceId == 0x286B1F03)
         {
-            cout << "Found index of compressed files" << endl;
+            //cout << "Found index of compressed files" << endl;
 
             m_DBDF = (DBDFEntry*)(m_File.data()+entry.location);
             m_DBDFSize = entry.size / 16;
@@ -79,7 +79,7 @@ bool Sc4SaveGame::getFile(FileType type, uint32_t groupId, uint32_t instanceId, 
 
         if(entry.typeId == type && entry.instanceId == instanceId)
         {
-            cout << "Got file T:"<< hex << entry.typeId << " G:" << entry.groupId << " I:" << entry.instanceId << dec <<endl;
+            //cout << "Got file T:"<< hex << entry.typeId << " G:" << entry.groupId << " I:" << entry.instanceId << dec <<endl;
 
             data = (void*)(m_File.data() + entry.location);
             size = entry.size;

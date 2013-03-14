@@ -4,56 +4,78 @@
 
 #include <sc4savegame.h>
 
+#include <boost/program_options.hpp>
+
+namespace po = boost::program_options;
 
 using namespace std;
 
-int main()
+int main(int arc, char* argv[])
 {
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help", "produce help message")
+        ("thumbnail", po::value<string>(), "Extract thumbnail")
+        ("savegame", po::value<string>(), "Save game to open")
+    ;
 
-    string folder = "/Users/lisa/Downloads/Steamboat Springs/";
-    string city = "City - Peach Trees";
+    po::positional_options_description p;
+    p.add("savegame", -1);
 
-    Sc4SaveGame file(folder + city + ".sc4");
+    po::variables_map vm;
+    po::store(po::command_line_parser(arc, argv).
+              options(desc).positional(p).run(), vm);
+    po::notify(vm);
 
 
-    const void* thumbData = 0;
-    size_t thumbSize = 0;
-    if(file.getFile(Sc4SaveGame::PNG, 0, 0, thumbData,thumbSize))
+    if(vm.count("savegame") == 0)
     {
-        ofstream out;
+        cerr << "Must specify savegame" << endl;
+        return 1;
+    }
 
-        string fname = folder + city + ".png";
 
-        out.open(fname.c_str(),ios_base::binary);
+    Sc4SaveGame file( vm["savegame"].as<string>());
+    if(vm.count("thumbnail") == 1)
+    {
+        const void* thumbData = 0;
+        size_t thumbSize = 0;
+        if(file.getFile(Sc4SaveGame::PNG, 0, 0, thumbData,thumbSize))
+        {
+            ofstream out;
 
-        out.write((const char*)thumbData,thumbSize);
+            string fname = vm["thumbnail"].as<string>() + ".png";
+
+            out.open(fname.c_str(),ios_base::binary);
+
+            out.write((const char*)thumbData,thumbSize);
+        }
     }
 
     RegionViewFile* region = RegionViewFile::loadFrom(file);
     if(region)
     {
-        string fname = folder + city + ".json";
-        ofstream out(fname.c_str());
+        cout << "{" << endl;
 
-        out << "{" << endl;
+        cout << "\"name\":\"" << region->cityName << "\"," << endl;
+        cout << "\"mayorName\":\"" << region->mayorName << "\"," << endl;
 
-        out << "\"name\":\"" << region->cityName << "\"," << endl;
-        out << "\"mayorName\":\"" << region->mayorName << "\"," << endl;
+        cout << "\"tileX\":\"" << region->tileX << "\"," << endl;
+        cout << "\"tileY\":\"" << region->tileY << "\"," << endl;
 
-        out << "\"tileX\":\"" << region->tileX << "\"," << endl;
-        out << "\"tileY\":\"" << region->tileY << "\"," << endl;
+        cout << "\"sizeX\":\"" << region->sizeX << "\"," << endl;
+        cout << "\"sizeY\":\"" << region->sizeY << "\"," << endl;
+        cout << "\"guid\":\"" << hex << region->guid << "\"" << endl;
 
-        out << "\"sizeX\":\"" << region->sizeX << "\"," << endl;
-        out << "\"sizeY\":\"" << region->sizeY << "\"," << endl;
-        out << "\"guid\":\"" << region->guid << "\"" << endl;
-
-        out << "}";
+        cout << "}";
 
         delete region;
     }
+    else
+    {
+        cerr << "Could not get region view file" << endl;
+    }
 
-
-    cout << "Hello World!" << endl;
     return 0;
 }
 
