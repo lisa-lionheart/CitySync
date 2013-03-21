@@ -5,22 +5,22 @@
 #include <QLabel>
 #include "city.h"
 
-class CityView : public QLabel
+#include <QDeclarativeContext>
+
+class CityViewController : public QDeclarativeContext
 {
     Q_OBJECT
 public:
-    explicit CityView(QWidget *parent = 0);
-    
+    explicit CityViewController(QDeclarativeEngine*);
+
     void setCity(City*);
 signals:
     
 public slots:
+
     
 private:
     City* m_City;
-
-    QLabel m_Thumbnail;
-    QLabel m_Name;
 };
 
 #endif // CITYVIEW_H

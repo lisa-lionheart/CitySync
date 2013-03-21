@@ -2,20 +2,20 @@
 
 #include "city.h"
 
-CityView::CityView(QWidget *parent) :
-    QLabel(parent), m_Thumbnail(parent), m_Name(this)
+CityViewController::CityViewController(QDeclarativeEngine *parent) :
+    QDeclarativeContext(parent)
 {
 
 
 }
 
-void CityView::setCity(City* city)
+void CityViewController::setCity(City* city)
 {
     m_City = city;
 
 
-    setPixmap(m_City->thumbnail());
-    resize(m_City->thumbnail().size());
+    //setPixmap(m_City->thumbnail());
+    //resize(m_City->thumbnail().size());
 
-    m_Name.setText(m_City->name());
+    //m_Name.setText(m_City->name());
 }

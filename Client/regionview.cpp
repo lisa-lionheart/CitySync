@@ -6,65 +6,102 @@
 
 #include "math.h"
 
-RegionView::RegionView() :
+#include <QDeclarativeItem>
+#include <QGraphicsView>
+
+RegionView::RegionView(Server* server) :
     QMainWindow(0),
     ui(new Ui::RegionView)
 {
-
-
+    m_Server = server;
 
     ui->setupUi(this);
 
-
 }
 
 
-bool orderOnY(City* a, City* b)
+QPoint project(QPoint region)
 {
-    return a->tilePosition().y() < b->tilePosition().y();
+    int x = (region.x() * 90) - (region.y() * 37);
+    int y = (region.y() * 45) + (region.x() * 19);
+
+    return QPoint(x,y);
 }
-
-
-float distToOrigin(QPoint p)
-{
-    return sqrt( (p.x() * p.x()) + (p.y() * p.y()) );
-}
-
-bool orderDist(City* a, City* b)
-{
-    return distToOrigin(a->position()) > distToOrigin(b->tilePosition());
-}
-
-
 
 void RegionView::setRegion(Region* region)
 {
+    m_Region = region;
+
+    m_Engine.addImageProvider(region->name(), region);
+    if(m_Region->cities().count() == 0)
+    {
+        connect(m_Region,SIGNAL(regionUpdated()),SLOT(regionLoaded()));
+    }
+}
 
 
-    QList<City*> cities = region->cities();
+void RegionView::regionLoaded()
+{
 
-    qSort(cities.begin(),cities.end(),orderOnY);
-    QLabel* container = new QLabel;
+
+    m_Tile = new QDeclarativeComponent(&m_Engine, QUrl("resources/tile.qml"));
+
+
+    if(!m_Tile->isReady())
+        QObject::connect(m_Tile, SIGNAL(statusChanged(QDeclarativeComponent::Status)),
+                          this, SLOT(loadView()));
+    else
+        loadView();
+
+}
+
+void RegionView::loadView()
+{
+
+    QList<City*> cities = m_Region->cities().values();
+
+    QGraphicsScene* scene = new QGraphicsScene;
+    QGraphicsView* container = new QGraphicsView(scene);
+
+    container->setBackgroundBrush(QBrush(QColor(128,0,255)));
 
     container->resize(2100,1000);
 
     for(int i=0; i < cities.length(); i++)
     {
+        City* c = cities[i];
+/*
+        CityViewController* cityViewController = new CityViewController(&m_Engine);
+        cityViewController->setCity(cities[i]);
+*/
 
-        CityView* cityView = new CityView(container);
-        cityView->setCity(cities[i]);
+        QDeclarativeContext* ctx = new QDeclarativeContext(&m_Engine,container);
+        ctx->setContextProperty("region",m_Region);
+        ctx->setContextProperty("city",c);
 
-        QPoint basePos = cities[i]->tilePosition();
+        QDeclarativeItem* cityView = (QDeclarativeItem*)m_Tile->create(ctx);
 
-        int offsetX = ((cities[i]->thumbnail().width() * 184) /260);
-        int offsetY = cities[i]->thumbnail().height();
-        cityView->move(basePos.x() - offsetX + 600, basePos.y() - offsetY + 30);
+        int x = project(c->bottomLeftPosition()).x();
+        int y = project(c->bottomRightPosition()).y() - 400;
+
+        QPoint pos = c->position();
+
+        cityView->setProperty("x", x);
+        cityView->setProperty("y", y);
+        cityView->setProperty("z", project(c->centerPoint()).y() + c->size()*5 );
+
+        container->scene()->addItem( cityView );
     }
 
-    QScrollArea* scroll = new QScrollArea(this);
-    setCentralWidget(scroll);
+/*
+    for(int i=0; i <= 16; i++ )
+    {
+        scene->addLine(QLine(project(QPoint(i,0)),project(QPoint(i,16))));
+        scene->addLine(QLine(project(QPoint(0,i)),project(QPoint(16,i))));
+    }
+*/
 
-    scroll->setWidget(container);
+    setCentralWidget(container);
 
 
 }

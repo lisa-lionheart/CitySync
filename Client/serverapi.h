@@ -1,6 +1,8 @@
 #ifndef SERVERAPI_H
 #define SERVERAPI_H
 
+
+#include <QString>
 class Region;
 
 

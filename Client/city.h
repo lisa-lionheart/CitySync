@@ -5,31 +5,59 @@
 #include <QObject>
 #include <QPixmap>
 
+#include "json/json.h"
+
 class RegionViewFile;
+class Region;
 
 class City : public QObject
 {
     Q_OBJECT
+
+
+    Q_PROPERTY(QString thumbnailUrl READ thumbnailUrl NOTIFY cityUpdated)
+    Q_PROPERTY(bool isLoading READ isLoading NOTIFY cityUpdated)
 public:
-    explicit City(QObject*);
+    explicit City(Region*, Json::Value&);
+    ~City();
     
     void loadSave(const QString& path);
 
-    QPixmap& thumbnail();
+    Q_INVOKABLE QImage& thumbnail();
 
-    QPoint tilePosition();
     QPoint position();
+    QPoint bottomRightPosition();
+    QPoint bottomLeftPosition();
 
-    QString name();
+    QPoint centerPoint();
+
+    Region* region();
+
+    Q_INVOKABLE QString thumbnailUrl();
+
+    Q_INVOKABLE int screenWidth();
+    int size();
+
+    bool isLoading();
+
+    Q_INVOKABLE QString name();
+
+    Q_INVOKABLE QString guid();
 
 signals:
-    
+    void cityUpdated();
 public slots:
     
 
 private:
-    QPixmap m_Thumbnail;
-    RegionViewFile* m_RegionData;
+    QImage m_Thumbnail;
+    QString m_Name;
+    QString m_Guid;
+    QString m_Owner;
+
+    QPoint m_Position;
+    int m_Size;
+
 };
 
 #endif // CITY_H

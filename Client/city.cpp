@@ -1,6 +1,10 @@
 #include "city.h"
 
 #include <iostream>
+#include <sstream>
+
+#include "Region.h"
+#include "server.h"
 
 #include "sc4savegame.h"
 #include "regionviewfile.h"
@@ -8,18 +12,31 @@
 using namespace std;
 
 
-City::City(QObject *parent) :
-    QObject(parent)
+City::City(Region *region, Json::Value& data) :
+    QObject((QObject*)region)
 {
+    cout << "Parsing city: " << data.toStyledString() << endl;
+
+    m_Name = QString::fromStdString( data["name"].asString() );
+    m_Owner = QString::fromStdString( data["owner"].asString() );
+    m_Guid = QString::fromStdString( data["guid"].asString() );
+
+    m_Position = QPoint( data["x"].asInt(), data["y"].asInt());
+    m_Size = data["size"].asInt();
 
 }
 
+
+bool City::isLoading()
+{
+
+}
 
 void City::loadSave(const QString& path)
 {
     Sc4SaveGame save(path.toStdString());
 
-    m_RegionData = RegionViewFile::loadFrom(save);
+    RegionViewFile* m_RegionData = RegionViewFile::loadFrom(save);
 
 
     cout << "City " << m_RegionData->cityName << " guid " << hex << m_RegionData->guid << endl;
@@ -35,35 +52,75 @@ void City::loadSave(const QString& path)
         return;
     }
 
-    QImage thumb;
-    thumb.loadFromData((uchar*)thumbData,thumbSize,"png");
-    m_Thumbnail = QPixmap::fromImage(thumb);
+    m_Thumbnail.loadFromData((uchar*)thumbData,thumbSize,"png");
+    emit cityUpdated();
 }
 
-QPoint City::tilePosition()
+Region* City::region()
 {
-    cout << "City Position " << m_RegionData->tileX << ", " << m_RegionData->tileY << endl;
+    return (Region*)parent();
+}
 
-    int bx = m_RegionData->tileX + m_RegionData->sizeX;
-    int by = m_RegionData->tileY + m_RegionData->sizeY;
+QString City::thumbnailUrl()
+{
+   // return "qrc:///resources/thumbnail.png";
 
-    int x = (bx * 90) - (by * 38);
-    int y = (by * 45) + (bx * 19);
 
-    return QPoint(x,y);
+    stringstream s;
+    if(m_Thumbnail.isNull())
+    {
+        s << region()->server()->url().toStdString() << "region/" <<  region()->name().toStdString() << "/" << m_Guid.toStdString() << "/" << "thumbnail.png";
+    }
+    else
+    {
+        s << "image://" << region()->name().toStdString() << "/" << m_Guid.toStdString();
+    }
+
+    return QString::fromStdString(s.str());
 }
 
 QPoint City::position()
 {
-    return QPoint(m_RegionData->tileX + m_RegionData->sizeX,m_RegionData->tileY + m_RegionData->sizeY);
+    return m_Position;
 }
 
-QPixmap& City::thumbnail()
+QPoint City::centerPoint()
+{
+    return QPoint(m_Position.x()+ m_Size/2, m_Position.y()+ m_Size/2);
+}
+
+int City::size()
+{
+    return m_Size;
+}
+
+
+QPoint City::bottomRightPosition()
+{
+    return QPoint(m_Position.x()  +m_Size,m_Position.y() + m_Size);
+}
+
+QPoint City::bottomLeftPosition()
+{
+    return QPoint(m_Position.x() ,m_Position.y() + m_Size);
+}
+
+QImage& City::thumbnail()
 {
     return m_Thumbnail;
 }
 
 QString City::name()
 {
-    return QString::fromStdString(m_RegionData->cityName);
+    return m_Name;
+}
+
+int City::screenWidth()
+{
+    return m_Size * 128;
+}
+
+QString City::guid()
+{
+    return m_Guid;
 }
