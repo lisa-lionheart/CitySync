@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>resources/thumbnail.png</file>
-        <file>resources/tile.qml</file>
-        <file>resources/ajax-loader.gif</file>
-    </qresource>
-</RCC>

@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/thumbnail.png</file>
+        <file>resources/tile.qml</file>
+        <file>resources/ajax-loader.gif</file>
+        <file>resources/SimCity 4.exe</file>
+        <file>resources/overlay.qml</file>
+        <file>resources/flag.png</file>
+    </qresource>
+</RCC>

@@ -1,14 +1,4 @@
 #!/bin/sh
 
-ARCH=`arch`
-
-NODE_DIR=~/node-v0.8.6-linux-x86_64
-
-export NODE_PATH=$NODE_DIR/node_modules
-
-export PATH=$PATH:$NODE_DIR/bin
-
-
-#rm -Rf /home/lisa/server_data
-
-node CitySync.js
+export PATH=$PATH:$PWD/bin
+node js/CitySync.js

@@ -1,0 +1,4 @@
+{
+	"port": 6888,
+	"data_dir": "../server_data/"
+}
