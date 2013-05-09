@@ -1,5 +1,6 @@
 var fs = require("fs");
 var exec = require('child_process').exec;
+var crypto = require('crypto');
 
 /**
 	Load a json file
@@ -30,6 +31,18 @@ exports.saveJson = function(data,path)
 
 exports.md5File = function(path,cb)
 {
+	var md5sum = crypto.createHash('md5');
+
+	var s = fs.ReadStream(path);
+	s.on('data', function(d) {
+	  md5sum.update(d);
+	});
+
+	s.on('end', function() {
+	  cb(md5sum.digest('hex'));
+	});
+
+	/*
 	exec("md5sum \"" + path + "\"",
 			function (error, stdout, stderr) {
 
@@ -45,5 +58,5 @@ exports.md5File = function(path,cb)
 				console.log("File md5 for : " + path + " is " + md5);
 				cb(md5);
 			}
-		);
+		);*/
 }

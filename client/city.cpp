@@ -380,4 +380,7 @@ void City::notifyUpdated()
 
 }
 
-
+bool City::owned()
+{
+    return owner() == region()->server()->username();
+}

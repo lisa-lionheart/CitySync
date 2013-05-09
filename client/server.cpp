@@ -87,12 +87,4 @@ void Server::fetchRegions()
     connect(m_FetchRegionsRequest,SIGNAL(finished()),SLOT(handleGetRegionsResponse()));
 }
 
-const QString& Server::owner()
-{
-    return m_Owner;
-}
 
-bool Server::owned()
-{
-    return owner() == region()->server()->username();
-}
